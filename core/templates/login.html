@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-body: #f3f4f6;
+            --bg-card: #ffffff;
+            --text-main: #111827;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-color: var(--bg-body);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            width: 100%;
+            max-width: 420px;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+        
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+        }
+
+        .login-header { text-align: center; margin-bottom: 2rem; }
+        .login-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; }
+        .login-header p { color: var(--text-secondary); font-size: 0.875rem; }
+
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; font-size: 0.875rem; font-weight: 500; color: var(--text-main); margin-bottom: 0.5rem; }
+        
+        .input-wrapper { position: relative; }
+        .input-icon { 
+            position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); 
+            color: var(--text-secondary); pointer-events: none; 
+        }
+        
+        input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem; /* Padding left para el icono */
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+            background: #f9fafb;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+        }
+
+        .remember-me { display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); cursor: pointer; }
+        .remember-me input { width: auto; margin: 0; padding: 0; cursor: pointer; accent-color: var(--primary); }
+        
+        .forgot-link { color: var(--primary); text-decoration: none; font-weight: 500; }
+        .forgot-link:hover { text-decoration: underline; }
+
+        .btn-submit {
+            width: 100%;
+            padding: 0.85rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-submit:hover { background-color: var(--primary-hover); }
+        .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .admin-note {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .admin-note span { color: var(--text-main); font-weight: 600; }
+
+        /* Spinner para loading */
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid #ffffff;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: none;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Mensaje de error */
+        .error-message {
+            color: var(--danger);
+            font-size: 0.85rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            display: none;
+            background: #fef2f2;
+            padding: 0.5rem;
+            border-radius: 6px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="logo-area">
+            <div class="logo-icon">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+            </div>
+            <h2 style="font-weight: 700; font-size: 1.25rem;">MediCore</h2>
+        </div>
+
+        <div class="login-header">
+            <h1>¡Hola de nuevo!</h1>
+            <p>Ingresa tus credenciales para acceder al panel</p>
+        </div>
+
+        <form id="loginForm">
+            <div id="errorMsg" class="error-message">Usuario o contraseña incorrectos</div>
+
+            <div class="form-group">
+                <label>Correo Electrónico</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    <input type="email" id="email" placeholder="nombre@hospital.com" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Contraseña</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <div class="form-footer">
+                <label class="remember-me">
+                    <input type="checkbox"> Recordarme
+                </label>
+                <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <button type="submit" class="btn-submit" id="btnSubmit">
+                <span class="spinner" id="loadingSpinner"></span>
+                <span id="btnText">Iniciar Sesión</span>
+            </button>
+        </form>
+
+        <div class="admin-note">
+            ¿No tienes cuenta? <br>
+            Contacta al <span>Administrador del Sistema</span> para solicitar acceso.
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btnSubmit');
+            const spinner = document.getElementById('loadingSpinner');
+            const btnText = document.getElementById('btnText');
+            const errorMsg = document.getElementById('errorMsg');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // 1. UI Loading State
+            btn.disabled = true;
+            spinner.style.display = 'block';
+            btnText.innerText = 'Verificando...';
+            errorMsg.style.display = 'none';
+
+            // 2. Simulación de petición al servidor (1.5 segundos)
+            setTimeout(() => {
+                // Validación "Dummy" (Puedes cambiar esto)
+                // Aquí simulamos que cualquier correo que termine en @hospital.com entra
+                if(email.includes('@hospital.com') && password.length > 0) {
+                    
+                    // ÉXITO: Redireccionar al index.
+                    window.location.href = '/';
+                    
+                } else {
+                    // ERROR
+                    btn.disabled = false;
+                    spinner.style.display = 'none';
+                    btnText.innerText = 'Iniciar Sesión';
+                    errorMsg.style.display = 'block';
+                    errorMsg.innerText = "Credenciales inválidas. Usa un correo @hospital.com";
+                }
+            }, 1500);
+        });
+    </script>
+</body>
+</html>

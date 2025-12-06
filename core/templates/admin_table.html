@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - Búsqueda Integrada</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-body: #f3f4f6;
+            --bg-card: #ffffff;
+            --text-main: #111827;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
+            --danger-hover: #dc2626;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); padding: 2rem; color: var(--text-main); }
+
+        .container {
+            max-width: 1200px; margin: 0 auto; background: var(--bg-card);
+            border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); overflow: hidden;
+            display: flex; flex-direction: column; min-height: 600px;
+        }
+
+        /* Header */
+        .header { padding: 1.5rem; border-bottom: 1px solid var(--border); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .header-controls { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; background: #f9fafb; padding: 1rem; border-radius: 8px; border: 1px solid var(--border); }
+        .header h2 { font-size: 1.25rem; font-weight: 600; }
+        
+        /* Botones */
+        .btn { padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 500; border: 1px solid transparent; transition: 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-outline { background: white; border-color: var(--border); color: var(--text-secondary); }
+        .btn-outline:hover { background: #f3f4f6; }
+        .btn-danger { background-color: var(--danger); color: white; border: none; }
+        .btn-danger:hover:not(:disabled) { background-color: var(--danger-hover); }
+        .btn-danger:disabled { opacity: 0.6; cursor: not-allowed; background-color: #fca5a5; }
+
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        /* Inputs */
+        .select-input { padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; color: var(--text-main); outline: none; background: white; cursor: pointer; }
+        
+        /* Búsqueda (NUEVO ESTILO) */
+        .search-wrapper { position: relative; display: flex; align-items: center; min-width: 250px; }
+        .search-icon { position: absolute; left: 0.75rem; color: var(--text-secondary); pointer-events: none; }
+        .search-input { width: 100%; padding: 0.5rem 0.75rem 0.5rem 2.25rem; border: 1px solid var(--border); border-radius: 6px; outline: none; font-size: 0.875rem; }
+        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); }
+
+        /* Tabla */
+        .table-container { overflow-x: auto; flex-grow: 1; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        thead { background-color: #f9fafb; position: sticky; top: 0; z-index: 5; }
+        th { padding: 1rem 1.5rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }
+        td { padding: 0.85rem 1.5rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; vertical-align: middle; }
+        tr:hover { background-color: #f9fafb; }
+        tr.selected-row { background-color: #eff6ff; }
+        input[type="checkbox"] { width: 1.1em; height: 1.1em; cursor: pointer; accent-color: var(--primary); }
+
+        /* Badges */
+        .badge { padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .badge-admin { background-color: #e0e7ff; color: #4338ca; }
+        .badge-medico { background-color: #d1fae5; color: #065f46; }
+        .badge-capturista { background-color: #f3f4f6; color: #374151; }
+
+        .user-cell { display: flex; flex-direction: column; }
+        .user-name { font-weight: 600; }
+        .user-email { font-size: 0.75rem; color: var(--text-secondary); }
+
+        /* Actions */
+        .action-cell { position: relative; }
+        .btn-dots { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary); padding: 0.5rem; border-radius: 50%; }
+        .btn-dots:hover { background-color: #e5e7eb; }
+        .dropdown-menu { display: none; position: absolute; right: 1.5rem; top: 2.5rem; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 10; min-width: 120px; }
+        .dropdown-menu.show { display: block; }
+        .dropdown-item { display: block; width: 100%; padding: 0.5rem 1rem; text-align: left; border: none; background: none; cursor: pointer; font-size: 0.875rem; }
+        .dropdown-item:hover { background-color: #f3f4f6; }
+        .text-danger { color: var(--danger); }
+
+        /* Footer */
+        .footer { padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); background: white; }
+        .footer-left { display: flex; align-items: center; gap: 1rem; }
+        .rows-per-page-label { font-size: 0.875rem; color: var(--text-secondary); }
+        .pagination-controls { display: flex; gap: 0.25rem; }
+        .pagination-controls button { background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 6px; color: var(--text-main); transition: 0.2s; }
+        .pagination-controls button:hover:not(:disabled) { background-color: #f3f4f6; }
+        .pagination-controls button.active { background-color: #f3f4f6; color: var(--primary); font-weight: 600; border-color: var(--primary); }
+        .pagination-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Modales */
+        @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 50; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay.open { display: flex; opacity: 1; }
+        .modal { background: white; padding: 2rem; border-radius: 12px; width: 400px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .modal-overlay.open .modal { animation: modalFadeIn 0.3s ease-out forwards; }
+        .modal-delete-header { text-align: center; margin-bottom: 1.5rem; }
+        .icon-danger { width: 50px; height: 50px; background: var(--danger-bg); color: var(--danger); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
+        .modal-actions.center { justify-content: center; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.875rem; margin-bottom: 0.5rem; }
+        .form-group input, .form-group select { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-top">
+                <div>
+                    <h2>Usuarios</h2>
+                    <span style="font-size: 0.85rem; color: var(--text-secondary);">Gestión avanzada de personal</span>
+                </div>
+                <button class="btn btn-primary" onclick="openUserModal()">+ Nuevo Usuario</button>
+            </div>
+
+            <div class="header-controls">
+                
+                <div class="search-wrapper">
+                    <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" class="search-input" placeholder="Buscar por nombre o correo..." oninput="handleSearch(this.value)">
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 0.5rem; border-right: 1px solid var(--border); border-left: 1px solid var(--border); padding: 0 1rem;">
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">SELECCIÓN:</span>
+                    <button class="btn btn-outline" onclick="selectAllGlobal()">Todo</button>
+                    <button class="btn btn-outline" onclick="deselectAllGlobal()">Nada</button>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">ORDENAR:</span>
+                    <select id="sortFilter" class="select-input" onchange="applySort()">
+                        <option value="id">ID (Default)</option>
+                        <option value="name">Nombre (A-Z)</option>
+                        <option value="role">Rol</option>
+                        <option value="lastLogin">Último Login</option>
+                    </select>
+                </div>
+
+                <div style="margin-left: auto; display: flex; align-items: center; gap: 1rem;">
+                    <span style="font-size: 0.85rem; color: var(--primary);">
+                        <span id="selectedCount">0</span> seleccionados
+                    </span>
+                    <button id="btnDeleteSelected" class="btn btn-danger fade-in" onclick="requestDeleteSelected()" style="display: none;">
+                        Eliminar (<span id="deleteCountText">0</span>)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 40px;"><input type="checkbox" id="masterCheckbox" onchange="toggleSelectPage(this)"></th>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th>Departamento</th>
+                        <th>Último Login</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <div class="rows-per-page-label">
+                    Filas por pág:
+                    <select id="rowsPerPageSelect" class="select-input" style="padding: 0.25rem; font-size: 0.875rem; margin-left: 0.5rem;" onchange="changeRowsPerPage()">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+                <span style="font-size: 0.875rem; color: var(--text-secondary); border-left: 1px solid var(--border); padding-left: 1rem;" id="paginationInfo">Cargando...</span>
+            </div>
+            <div class="pagination-controls" id="paginationControls"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="userModal">
+        <div class="modal">
+            <h3 id="modalTitle">Nuevo Usuario</h3>
+            <form id="userForm">
+                <input type="hidden" id="userId">
+                <div class="form-group"><label>Nombre</label><input type="text" id="userName" required></div>
+                <div class="form-group"><label>Correo</label><input type="email" id="userEmail" required></div>
+                <div class="form-group"><label>Departamento</label><input type="text" id="userDept" required></div>
+                <div class="form-group">
+                    <label>Rol</label>
+                    <select id="userRole">
+                        <option value="Administrador">Administrador</option>
+                        <option value="Médico">Médico</option>
+                        <option value="Capturista">Capturista</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeUserModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal" style="border-top: 5px solid var(--danger);">
+            <div class="modal-delete-header">
+                <div class="icon-danger">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">¿Estás seguro?</h3>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;" id="deleteMessageText">Esta acción eliminará el registro permanentemente.</p>
+            </div>
+            <div class="modal-actions center">
+                <button class="btn btn-outline" onclick="closeDeleteModal()">Cancelar</button>
+                <button id="btnConfirmDelete" class="btn btn-danger" disabled onclick="executeDelete()">Eliminar (5s)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. GENERADOR DE DATOS ---
+        function generateData() {
+            const names = ["James", "Mary", "Robert", "Patricia", "John", "Jennifer", "Michael", "Linda", "David", "Elizabeth", "William", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Charles", "Karen", "Christopher", "Lisa", "Daniel", "Nancy", "Matthew", "Betty", "Anthony", "Margaret", "Mark", "Sandra"];
+            const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson"];
+            const depts = ["Cardiología", "Pediatría", "Urgencias", "Recepción", "Archivo", "Laboratorio", "Farmacia", "Nutrición", "Rayos X"];
+            
+            let data = [
+                { id: 1, name: 'Neil Sims', email: 'neil.sims@hospital.com', role: 'Administrador', dept: 'Dirección General', lastLogin: '2023-10-25' },
+                { id: 2, name: 'Sarah Connor', email: 'sarah.c@hospital.com', role: 'Administrador', dept: 'Sistemas', lastLogin: '2023-11-12' },
+                { id: 3, name: 'Rick Deckard', email: 'rick.d@hospital.com', role: 'Administrador', dept: 'Seguridad', lastLogin: '2023-11-15' }
+            ];
+
+            for(let i = 4; i <= 50; i++) {
+                const randName = names[Math.floor(Math.random() * names.length)];
+                const randLast = lastNames[Math.floor(Math.random() * lastNames.length)];
+                const fullName = `${randName} ${randLast}`;
+                const email = `${randName.toLowerCase()}.${randLast.toLowerCase()}@hospital.com`;
+                const dept = depts[Math.floor(Math.random() * depts.length)];
+                const role = Math.random() > 0.5 ? 'Médico' : 'Capturista'; 
+                const day = Math.floor(Math.random() * 28) + 1;
+                const date = `2023-11-${day.toString().padStart(2, '0')}`;
+                data.push({ id: i, name: fullName, email: email, role: role, dept: dept, lastLogin: date });
+            }
+            return data;
+        }
+
+        let users = generateData();
+
+        // --- STATE ---
+        let currentPage = 1;
+        let rowsPerPage = 5; 
+        let selectedIds = new Set();
+        let currentSort = 'id';
+        let searchTerm = ''; // NUEVO ESTADO
+        let pendingDeleteIds = [];
+        let deleteTimer = null;
+
+        // --- CORE FUNCTIONS (MODIFIED) ---
+        
+        // 1. Nueva Función: Obtener usuarios procesados (Filtrados y Ordenados)
+        // Esto centraliza la lógica para que la Tabla y la Selección Masiva vean los mismos datos.
+        function getProcessedUsers() {
+            // A. Filtrar
+            let filtered = users;
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+                filtered = users.filter(u => 
+                    u.name.toLowerCase().includes(term) || 
+                    u.email.toLowerCase().includes(term)
+                );
+            }
+
+            // B. Ordenar
+            return filtered.sort((a, b) => {
+                if (a[currentSort] < b[currentSort]) return -1;
+                if (a[currentSort] > b[currentSort]) return 1;
+                return 0;
+            });
+        }
+
+        function handleSearch(val) {
+            searchTerm = val;
+            currentPage = 1; // Resetear a página 1 al buscar
+            renderTable();
+        }
+
+        function changeRowsPerPage() {
+            const select = document.getElementById('rowsPerPageSelect');
+            rowsPerPage = parseInt(select.value);
+            currentPage = 1; 
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('userTableBody');
+            tbody.innerHTML = '';
+
+            // Usamos la nueva función centralizada
+            const processedUsers = getProcessedUsers();
+
+            // Paginación sobre los resultados filtrados
+            const totalPages = Math.ceil(processedUsers.length / rowsPerPage);
+            if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const pageUsers = processedUsers.slice(start, end);
+
+            if (pageUsers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color: var(--text-secondary);">No se encontraron resultados</td></tr>`;
+            } else {
+                pageUsers.forEach(user => {
+                    const isSelected = selectedIds.has(user.id);
+                    const tr = document.createElement('tr');
+                    if (isSelected) tr.classList.add('selected-row');
+
+                    tr.innerHTML = `
+                        <td><input type="checkbox" onchange="toggleSelectUser(${user.id})" ${isSelected ? 'checked' : ''}></td>
+                        <td>
+                            <div class="user-cell">
+                                <span class="user-name">${user.name}</span>
+                                <span class="user-email">${user.email}</span>
+                            </div>
+                        </td>
+                        <td><span class="badge ${getRoleClass(user.role)}">${user.role}</span></td>
+                        <td>${user.dept}</td>
+                        <td>${user.lastLogin}</td>
+                        <td style="text-align: right;" class="action-cell">
+                            <button class="btn-dots" onclick="toggleMenu(${user.id})">⋮</button>
+                            <div id="menu-${user.id}" class="dropdown-menu">
+                                <button class="dropdown-item" onclick="editUser(${user.id})">Editar</button>
+                                <button class="dropdown-item text-danger" onclick="requestDeleteOne(${user.id})">Eliminar</button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            updateMasterCheckbox(pageUsers);
+            renderPaginationControls(processedUsers.length);
+            updateSelectionState();
+        }
+
+        // --- PAGINACIÓN ---
+        function renderPaginationControls(totalItems) {
+            const totalPages = Math.ceil(totalItems / rowsPerPage);
+            const controls = document.getElementById('paginationControls');
+            
+            const start = (currentPage - 1) * rowsPerPage + 1;
+            const end = Math.min(start + rowsPerPage - 1, totalItems);
+            const infoText = totalItems > 0 ? `Mostrando ${start}-${end} de ${totalItems}` : '0 resultados';
+            document.getElementById('paginationInfo').innerText = infoText;
+            
+            if(totalItems === 0) {
+                controls.innerHTML = '';
+                return;
+            }
+
+            let html = `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>&lt;</button>`;
+            
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+            if (startPage > 1) {
+                html += `<button onclick="changePage(1)">1</button>`;
+                if (startPage > 2) html += `<button disabled>...</button>`;
+            }
+
+            for(let i = startPage; i <= endPage; i++) {
+                const activeClass = i === currentPage ? 'active' : '';
+                html += `<button onclick="changePage(${i})" class="${activeClass}">${i}</button>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += `<button disabled>...</button>`;
+                html += `<button onclick="changePage(${totalPages})">${totalPages}</button>`;
+            }
+
+            html += `<button onclick="changePage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>&gt;</button>`;
+            controls.innerHTML = html;
+        }
+
+        // --- UTILIDADES ---
+        function toggleSelectUser(id) {
+            if (selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id);
+            renderTable();
+        }
+
+        // Checkbox maestro (Solo selecciona lo que se ve en la página actual filtrada)
+        function toggleSelectPage(checkbox) {
+            const processedUsers = getProcessedUsers();
+            const start = (currentPage - 1) * rowsPerPage;
+            const pageUsers = processedUsers.slice(start, start + rowsPerPage);
+            
+            if (checkbox.checked) pageUsers.forEach(u => selectedIds.add(u.id)); 
+            else pageUsers.forEach(u => selectedIds.delete(u.id));
+            renderTable();
+        }
+
+        // Select All (Todos los filtrados o todos los globales?) -> Globales, como antes.
+        function selectAllGlobal() { 
+            // Opción: Si quieres seleccionar solo los FILTRADOS usa getProcessedUsers() aquí.
+            // Por defecto dejo seleccionar TODOS los que existen en memoria.
+            users.forEach(u => selectedIds.add(u.id)); 
+            renderTable(); 
+        }
+
+        function deselectAllGlobal() { selectedIds.clear(); renderTable(); }
+        
+        function updateSelectionState() {
+            const count = selectedIds.size;
+            document.getElementById('selectedCount').innerText = count;
+            const btnDelete = document.getElementById('btnDeleteSelected');
+            if (count > 0) {
+                btnDelete.style.display = 'inline-flex';
+                document.getElementById('deleteCountText').innerText = count;
+            } else { btnDelete.style.display = 'none'; }
+        }
+
+        function updateMasterCheckbox(pageUsers) {
+            const master = document.getElementById('masterCheckbox');
+            if (pageUsers.length === 0) { master.checked = false; master.indeterminate = false; return; }
+            const allSelected = pageUsers.every(u => selectedIds.has(u.id));
+            const someSelected = pageUsers.some(u => selectedIds.has(u.id));
+            master.checked = allSelected;
+            master.indeterminate = !allSelected && someSelected;
+        }
+
+        // --- MODALES (Borrado y CRUD) ---
+        function requestDeleteOne(id) { pendingDeleteIds = [id]; openDeleteModal(1); }
+        function requestDeleteSelected() { pendingDeleteIds = Array.from(selectedIds); openDeleteModal(pendingDeleteIds.length); }
+
+        function openDeleteModal(count) {
+            const modal = document.getElementById('deleteModal');
+            const msg = document.getElementById('deleteMessageText');
+            const btn = document.getElementById('btnConfirmDelete');
+            msg.innerHTML = count === 1 ? "Estás a punto de eliminar <b>1 usuario</b>." : `Estás a punto de eliminar <b>${count} usuarios</b>.`;
+            let seconds = 5;
+            btn.disabled = true;
+            btn.innerText = `Eliminar (${seconds}s)`;
+            modal.classList.add('open');
+            clearInterval(deleteTimer);
+            deleteTimer = setInterval(() => {
+                seconds--;
+                if (seconds <= 0) { clearInterval(deleteTimer); btn.disabled = false; btn.innerText = "¡Sí, eliminar!"; }
+                else { btn.innerText = `Eliminar (${seconds}s)`; }
+            }, 1000);
+        }
+
+        function closeDeleteModal() { clearInterval(deleteTimer); document.getElementById('deleteModal').classList.remove('open'); pendingDeleteIds = []; }
+        function executeDelete() {
+            users = users.filter(u => !pendingDeleteIds.includes(u.id));
+            pendingDeleteIds.forEach(id => selectedIds.delete(id));
+            closeDeleteModal(); renderTable();
+        }
+
+        function applySort() { currentSort = document.getElementById('sortFilter').value; renderTable(); }
+        function changePage(p) { 
+            const processed = getProcessedUsers();
+            const totalPages = Math.ceil(processed.length / rowsPerPage);
+            if (p >= 1 && p <= totalPages) { currentPage = p; renderTable(); } 
+        }
+        function getRoleClass(role) { if (role === 'Administrador') return 'badge-admin'; if (role === 'Médico') return 'badge-medico'; return 'badge-capturista'; }
+        function toggleMenu(id) {
+            document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('show'));
+            document.getElementById(`menu-${id}`).classList.toggle('show');
+        }
+        window.onclick = function(e) {
+            if (!e.target.matches('.btn-dots')) document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('show'));
+            if (e.target.classList.contains('modal-overlay')) {
+                if(e.target.id === 'userModal') closeUserModal();
+                if(e.target.id === 'deleteModal') closeDeleteModal();
+            }
+        }
+        
+        const userModal = document.getElementById('userModal');
+        function openUserModal() { document.getElementById('userForm').reset(); document.getElementById('modalTitle').innerText = "Nuevo Usuario"; document.getElementById('userId').value = ""; userModal.classList.add('open'); }
+        function closeUserModal() { userModal.classList.remove('open'); }
+        function editUser(id) {
+            const user = users.find(u => u.id === id);
+            document.getElementById('modalTitle').innerText = "Editar Usuario";
+            document.getElementById('userId').value = user.id;
+            document.getElementById('userName').value = user.name;
+            document.getElementById('userEmail').value = user.email;
+            document.getElementById('userDept').value = user.dept;
+            document.getElementById('userRole').value = user.role;
+            userModal.classList.add('open');
+        }
+        document.getElementById('userForm').onsubmit = function(e) {
+            e.preventDefault();
+            const id = document.getElementById('userId').value;
+            const userData = { name: document.getElementById('userName').value, email: document.getElementById('userEmail').value, dept: document.getElementById('userDept').value, role: document.getElementById('userRole').value };
+            if (id) { const index = users.findIndex(u => u.id == id); users[index] = { ...users[index], ...userData }; }
+            else { const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1; users.push({ id: newId, ...userData, lastLogin: new Date().toISOString().split('T')[0] }); }
+            closeUserModal(); renderTable();
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>
