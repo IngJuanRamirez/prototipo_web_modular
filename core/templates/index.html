@@ -67,12 +67,29 @@
         </ul>
 
         <div class="user-profile">
-            <div class="avatar">NS</div>
-            <div class="user-info">
-                <span class="user-name">Neil Sims</span>
-                <span class="user-role">Administrador</span>
+            <div class="avatar">
+                {{ user.username|slice:":2"|upper }}
             </div>
-            <a href="login" style="margin-left: auto; color: var(--text-secondary);">
+            
+            <div class="user-info">
+                <span class="user-name">
+                    {% if user.first_name %}
+                        {{ user.first_name }} {{ user.last_name }}
+                    {% else %}
+                        {{ user.username }}
+                    {% endif %}
+                </span>
+
+                <span class="user-role">
+                    {% if user.groups.first %}
+                        {{ user.groups.first.name }}
+                    {% else %}
+                        Sin Rol
+                    {% endif %}
+                </span>
+            </div>
+            
+            <a href="/logout/" style="margin-left: auto; color: var(--text-secondary);" title="Cerrar Sesión">
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
@@ -127,11 +144,13 @@
         <div class="section-title">Módulos del Sistema</div>
         <div class="modules-grid">
             
+            <!-- Por seguridad, pongo esto entre los ifs -->
+            {% if user.is_superuser or user.groups.first.name == 'Administrador' or user.groups.first.name == 'Capturista' or user.groups.first.name == 'Medico' %}
             <!-- 
             Carta al registro de un paciente 
             Administradores, Capturistas, Medicos.
             -->
-            <a href="#" class="module-card">
+            <a href="/patients_view/" class="module-card">
                 <div class="card-icon-area" style="color: var(--success);">
                     <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5"
                         viewBox="0 0 24 24">
@@ -145,7 +164,9 @@
                     <span class="btn-link">Acceder &rarr;</span>
                 </div>
             </a>
+            {% endif %}
 
+            {% if user.is_superuser or user.groups.first.name == 'Administrador' or user.groups.first.name == 'Capturista' %}
             <!-- 
             Carta al registro masivo de pacientes 
             Administradores, Capturistas.
@@ -163,12 +184,14 @@
                     <span class="btn-link">Acceder &rarr;</span>
                 </div>
             </a>
+            {% endif %}
 
+            {% if user.is_superuser or user.groups.first.name == 'Administrador' %}
             <!-- 
             Carta a la gestion de usuarios del sistema.
             Administradores.
             -->
-            <a href="users_view" class="module-card">
+            <a href="/users_view/" class="module-card">
                 <div class="card-icon-area" style="color: var(--primary);">
                     <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                 </div>
@@ -178,7 +201,9 @@
                     <span class="btn-link">Acceder &rarr;</span>
                 </div>
             </a>
+            {% endif %}
 
+            {% if user.is_superuser or user.groups.first.name == 'Administrador' or user.groups.first.name == 'Medico'%}
             <!-- 
             Carta al Mapa de distribucion
             Administradores, Medicos.
@@ -202,7 +227,9 @@
                     <span style="font-size:0.85rem; color:var(--text-secondary);">En desarrollo...</span>
                 </div>
             </div>
+            {% endif %}
 
+            {% if user.is_superuser or user.groups.first.name == 'Administrador' or user.groups.first.name == 'Medico'%}
             <!-- 
             Carta al Arbol Genealogico
             Administradores, Medicos.
@@ -226,6 +253,7 @@
                     <span style="font-size:0.85rem; color:var(--text-secondary);">En desarrollo...</span>
                 </div>
             </div>
+            {% endif %}
 
         </div>
 

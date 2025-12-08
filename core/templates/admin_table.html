@@ -117,10 +117,20 @@
     <div class="container">
         <div class="header">
             <div class="header-top">
-                <div>
-                    <h2>Usuarios</h2>
-                    <span style="font-size: 0.85rem; color: var(--text-secondary);">Gestión avanzada de personal</span>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <a href="/" class="btn btn-outline" style="text-decoration: none; color: var(--text-secondary);">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        <span style="margin-left: 0.5rem;">Volver</span>
+                    </a>
+
+                    <div style="border-left: 1px solid var(--border); padding-left: 1rem;">
+                        <h2>Usuarios</h2>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Gestión avanzada de personal</span>
+                    </div>
                 </div>
+
                 <button class="btn btn-primary" onclick="openUserModal()">+ Nuevo Usuario</button>
             </div>
 
@@ -230,7 +240,7 @@
             </div>
         </div>
     </div>
-
+    
     <script>
         // --- 1. GENERADOR DE DATOS ---
         function generateData() {

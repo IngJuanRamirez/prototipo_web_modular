@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pacientes - MediCore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           CSS COMPLETO (SIN DEPENDENCIAS EXTERNAS)
+           ========================================= */
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-body: #f3f4f6;
+            --bg-card: #ffffff;
+            --text-main: #111827;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
+            --danger-hover: #dc2626;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            padding: 2rem;
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 600px;
+        }
+
+        /* --- HEADER Y CONTROLES --- */
+        .header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        /* --- BOTONES --- */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid transparent;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+
+        .btn-outline { background: white; border-color: var(--border); color: var(--text-secondary); }
+        .btn-outline:hover { background: #f3f4f6; }
+
+        .btn-danger { background-color: var(--danger); color: white; border: none; }
+        .btn-danger:hover:not(:disabled) { background-color: var(--danger-hover); }
+        .btn-danger:disabled { opacity: 0.6; cursor: not-allowed; background-color: #fca5a5; }
+
+        /* --- INPUTS Y BÚSQUEDA --- */
+        .select-input {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-main);
+            outline: none;
+            background: white;
+            cursor: pointer;
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            min-width: 250px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            outline: none;
+            font-size: 0.875rem;
+        }
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        /* --- TABLA --- */
+        .table-container {
+            overflow-x: auto;
+            flex-grow: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        thead {
+            background-color: #f9fafb;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        th {
+            padding: 1rem 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 0.85rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+            vertical-align: middle;
+        }
+
+        tr:hover { background-color: #f9fafb; }
+        tr.selected-row { background-color: #eff6ff; }
+
+        input[type="checkbox"] {
+            width: 1.1em; height: 1.1em; cursor: pointer; accent-color: var(--primary);
+        }
+
+        /* --- BADGES (Etiquetas) --- */
+        .badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-diagnosis { background-color: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+        .badge-region { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        
+        .file-id { 
+            font-family: monospace; 
+            font-weight: 600; 
+            color: var(--text-secondary); 
+            background: #f3f4f6; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            font-size: 0.75rem;
+        }
+
+        .user-cell { display: flex; flex-direction: column; }
+        .user-cell .user-name { font-weight: 600; font-size: 0.875rem; }
+
+        /* --- ACCIONES (3 Puntos) --- */
+        .action-cell { position: relative; }
+        .btn-dots { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary); padding: 0.5rem; border-radius: 50%; }
+        .btn-dots:hover { background-color: #e5e7eb; }
+
+        .dropdown-menu {
+            display: none; position: absolute; right: 1.5rem; top: 2.5rem;
+            background: white; border: 1px solid var(--border); border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 10; min-width: 140px;
+        }
+        .dropdown-menu.show { display: block; }
+        .dropdown-item {
+            display: block; width: 100%; padding: 0.5rem 1rem; text-align: left;
+            border: none; background: none; cursor: pointer; font-size: 0.875rem;
+        }
+        .dropdown-item:hover { background-color: #f3f4f6; }
+        .text-danger { color: var(--danger); }
+
+        /* --- FOOTER --- */
+        .footer {
+            padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px solid var(--border); background: white;
+        }
+        .footer-left { display: flex; align-items: center; gap: 1rem; }
+        .rows-per-page-label { font-size: 0.875rem; color: var(--text-secondary); }
+        .pagination-controls { display: flex; gap: 0.25rem; }
+        .pagination-controls button {
+            background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem;
+            cursor: pointer; border-radius: 6px; color: var(--text-main); transition: 0.2s;
+        }
+        .pagination-controls button:hover:not(:disabled) { background-color: #f3f4f6; }
+        .pagination-controls button.active { background-color: #f3f4f6; color: var(--primary); font-weight: 600; border-color: var(--primary); }
+        .pagination-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* --- MODALES --- */
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center;
+            z-index: 50; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open { display: flex; opacity: 1; }
+
+        .modal {
+            background: white; padding: 2rem; border-radius: 12px; width: 400px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .modal-overlay.open .modal { animation: modalFadeIn 0.3s ease-out forwards; }
+
+        .modal-delete-header { text-align: center; margin-bottom: 1.5rem; }
+        .icon-danger {
+            width: 50px; height: 50px; background: var(--danger-bg); color: var(--danger);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem auto;
+        }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
+        .modal-actions.center { justify-content: center; }
+
+        /* Formularios Modal */
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.875rem; margin-bottom: 0.5rem; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-top">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <a href="/" class="btn btn-outline" style="text-decoration: none; color: var(--text-secondary);">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        <span style="margin-left: 0.5rem;">Volver</span>
+                    </a>
+
+                    <div style="border-left: 1px solid var(--border); padding-left: 1rem;">
+                        <h2>Pacientes</h2>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Registro clínico y control</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="openPatientModal()">+ Nuevo Paciente</button>
+            </div>
+
+            <div class="header-controls">
+                
+                <div class="search-wrapper">
+                    <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" class="search-input" placeholder="Buscar por nombre o expediente..." oninput="handleSearch(this.value)">
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 0.5rem; border-left: 1px solid var(--border); border-right: 1px solid var(--border); padding: 0 1rem;">
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">DIAGNÓSTICO:</span>
+                    <select id="diagFilter" class="select-input" onchange="applyFilters()">
+                        <option value="">Todos</option>
+                        <option value="Ca. Mama">Ca. Mama</option>
+                        <option value="Ca. Pulmón">Ca. Pulmón</option>
+                        <option value="Leucemia">Leucemia</option>
+                        <option value="Linfoma">Linfoma</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">REGIÓN:</span>
+                    <select id="regionFilter" class="select-input" onchange="applyFilters()">
+                        <option value="">Todas</option>
+                        <option value="Norte">Zona Norte</option>
+                        <option value="Sur">Zona Sur</option>
+                        <option value="Centro">Centro</option>
+                    </select>
+                </div>
+
+                <div style="margin-left: auto; display: flex; align-items: center; gap: 1rem;">
+                    <span style="font-size: 0.85rem; color: var(--primary);">
+                        <span id="selectedCount">0</span> seleccionados
+                    </span>
+                    <button id="btnDeleteSelected" class="btn btn-danger fade-in" onclick="requestDeleteSelected()" style="display: none;">
+                        Eliminar (<span id="deleteCountText">0</span>)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 40px;"><input type="checkbox" id="masterCheckbox" onchange="toggleSelectPage(this)"></th>
+                        <th>Expediente</th>
+                        <th>Paciente</th>
+                        <th>Edad / Sexo</th>
+                        <th>Diagnóstico</th>
+                        <th>Región</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="patientTableBody">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">
+                <div class="rows-per-page-label">
+                    Filas por pág:
+                    <select id="rowsPerPageSelect" class="select-input" style="padding: 0.25rem; font-size: 0.875rem; margin-left: 0.5rem;" onchange="changeRowsPerPage()">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+                <span style="font-size: 0.875rem; color: var(--text-secondary); border-left: 1px solid var(--border); padding-left: 1rem;" id="paginationInfo">Cargando...</span>
+            </div>
+            <div class="pagination-controls" id="paginationControls"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="patientModal">
+        <div class="modal" style="width: 500px;">
+            <h3 id="modalTitle">Registrar Paciente</h3>
+            <form id="patientForm">
+                <input type="hidden" id="patientId">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="pName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido</label>
+                        <input type="text" id="pLastName" required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Edad</label>
+                        <input type="number" id="pAge" min="0" max="120" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Sexo</label>
+                        <select id="pSex">
+                            <option value="F">Femenino</option>
+                            <option value="M">Masculino</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Diagnóstico</label>
+                    <select id="pDiag">
+                        <option value="Ca. Mama">Ca. Mama</option>
+                        <option value="Ca. Pulmón">Ca. Pulmón</option>
+                        <option value="Leucemia">Leucemia</option>
+                        <option value="Linfoma">Linfoma</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Región / Zona</label>
+                    <select id="pRegion">
+                        <option value="Norte">Norte</option>
+                        <option value="Centro">Centro</option>
+                        <option value="Sur">Sur</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closePatientModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Ficha</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal" style="border-top: 5px solid var(--danger);">
+            <div class="modal-delete-header">
+                <div class="icon-danger">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">¿Eliminar expediente?</h3>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;" id="deleteMessageText">Esta acción eliminará el registro clínico permanentemente.</p>
+            </div>
+            <div class="modal-actions center">
+                <button class="btn btn-outline" onclick="closeDeleteModal()">Cancelar</button>
+                <button id="btnConfirmDelete" class="btn btn-danger" disabled onclick="executeDelete()">Eliminar (5s)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. GENERADOR DE DATOS CLÍNICOS ---
+        function generatePatients() {
+            const names = ["Maria", "Jose", "Luis", "Carmen", "Ana", "Pedro", "Sofia", "Jorge", "Lucia", "Miguel"];
+            const lastnames = ["Garcia", "Lopez", "Martinez", "Rodriguez", "Hernandez", "Perez", "Sanchez", "Ramirez"];
+            const diags = ["Ca. Mama", "Ca. Pulmón", "Leucemia", "Linfoma", "Ca. Próstata", "Sarcoma"];
+            const regions = ["Norte", "Centro", "Sur"];
+            
+            let data = [];
+            for(let i = 1; i <= 50; i++) {
+                const name = names[Math.floor(Math.random() * names.length)];
+                const last = lastnames[Math.floor(Math.random() * lastnames.length)];
+                const diag = diags[Math.floor(Math.random() * diags.length)];
+                const region = regions[Math.floor(Math.random() * regions.length)];
+                const age = Math.floor(Math.random() * (80 - 5) + 5); 
+                const sex = Math.random() > 0.5 ? 'M' : 'F';
+                const expId = `EXP-${i.toString().padStart(3, '0')}`;
+
+                data.push({ id: i, exp: expId, name: `${name} ${last}`, age: age, sex: sex, diag: diag, region: region });
+            }
+            return data;
+        }
+
+        let patients = generatePatients();
+
+        // --- STATE ---
+        let currentPage = 1;
+        let rowsPerPage = 5;
+        let selectedIds = new Set();
+        let searchTerm = '';
+        let diagFilterVal = '';
+        let regionFilterVal = '';
+        let pendingDeleteIds = [];
+        let deleteTimer = null;
+
+        // --- FILTROS Y BÚSQUEDA ---
+        function getProcessedData() {
+            let filtered = patients;
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+                filtered = filtered.filter(p => 
+                    p.name.toLowerCase().includes(term) || 
+                    p.exp.toLowerCase().includes(term)
+                );
+            }
+            if (diagFilterVal) {
+                filtered = filtered.filter(p => p.diag === diagFilterVal);
+            }
+            if (regionFilterVal) {
+                filtered = filtered.filter(p => p.region === regionFilterVal);
+            }
+            return filtered;
+        }
+
+        function handleSearch(val) { searchTerm = val; currentPage = 1; renderTable(); }
+        function applyFilters() {
+            diagFilterVal = document.getElementById('diagFilter').value;
+            regionFilterVal = document.getElementById('regionFilter').value;
+            currentPage = 1;
+            renderTable();
+        }
+        function changeRowsPerPage() {
+            rowsPerPage = parseInt(document.getElementById('rowsPerPageSelect').value);
+            currentPage = 1;
+            renderTable();
+        }
+
+        // --- RENDER TABLA ---
+        function renderTable() {
+            const tbody = document.getElementById('patientTableBody');
+            tbody.innerHTML = '';
+
+            const processed = getProcessedData();
+            const totalPages = Math.ceil(processed.length / rowsPerPage);
+            if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const pageData = processed.slice(start, end);
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 2rem; color: var(--text-secondary);">No se encontraron pacientes</td></tr>`;
+            } else {
+                pageData.forEach(p => {
+                    const isSelected = selectedIds.has(p.id);
+                    const tr = document.createElement('tr');
+                    if (isSelected) tr.classList.add('selected-row');
+
+                    tr.innerHTML = `
+                        <td><input type="checkbox" onchange="toggleSelect(${p.id})" ${isSelected ? 'checked' : ''}></td>
+                        <td><span class="file-id">${p.exp}</span></td>
+                        <td>
+                            <div class="user-cell">
+                                <span class="user-name">${p.name}</span>
+                            </div>
+                        </td>
+                        <td>${p.age} años / ${p.sex}</td>
+                        <td><span class="badge badge-diagnosis">${p.diag}</span></td>
+                        <td><span class="badge badge-region">${p.region}</span></td>
+                        <td style="text-align: right;" class="action-cell">
+                            <button class="btn-dots" onclick="toggleMenu(${p.id})">⋮</button>
+                            <div id="menu-${p.id}" class="dropdown-menu">
+                                <button class="dropdown-item" onclick="editPatient(${p.id})">Editar Ficha</button>
+                                <button class="dropdown-item text-danger" onclick="requestDeleteOne(${p.id})">Eliminar</button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+            
+            updateMasterCheckbox(pageData);
+            renderPagination(processed.length);
+            updateSelectionState();
+        }
+
+        // --- UTILIDADES ---
+        function toggleSelect(id) { if(selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id); renderTable(); }
+        
+        function toggleSelectPage(cb) {
+            const processed = getProcessedData();
+            const start = (currentPage - 1) * rowsPerPage;
+            const pageData = processed.slice(start, start + rowsPerPage);
+            if(cb.checked) pageData.forEach(p => selectedIds.add(p.id));
+            else pageData.forEach(p => selectedIds.delete(p.id));
+            renderTable();
+        }
+
+        function requestDeleteOne(id) { pendingDeleteIds = [id]; openDeleteModal(1); }
+        function requestDeleteSelected() { pendingDeleteIds = Array.from(selectedIds); openDeleteModal(pendingDeleteIds.length); }
+
+        function openDeleteModal(n) {
+            const btn = document.getElementById('btnConfirmDelete');
+            document.getElementById('deleteMessageText').innerText = n===1 ? "Se borrará 1 expediente." : `Se borrarán ${n} expedientes.`;
+            let s = 5;
+            btn.disabled = true;
+            btn.innerText = `Eliminar (${s}s)`;
+            deleteModal.classList.add('open');
+            clearInterval(deleteTimer);
+            deleteTimer = setInterval(() => {
+                s--;
+                if(s<=0) { clearInterval(deleteTimer); btn.disabled=false; btn.innerText="Confirmar"; }
+                else btn.innerText = `Eliminar (${s}s)`;
+            }, 1000);
+        }
+        function closeDeleteModal() { clearInterval(deleteTimer); deleteModal.classList.remove('open'); pendingDeleteIds=[]; }
+        
+        function executeDelete() {
+            patients = patients.filter(p => !pendingDeleteIds.includes(p.id));
+            pendingDeleteIds.forEach(id => selectedIds.delete(id));
+            closeDeleteModal();
+            renderTable();
+        }
+
+        function updateSelectionState() {
+            const count = selectedIds.size;
+            document.getElementById('selectedCount').innerText = count;
+            const btn = document.getElementById('btnDeleteSelected');
+            if (count > 0) { btn.style.display = 'inline-flex'; document.getElementById('deleteCountText').innerText = count; }
+            else { btn.style.display = 'none'; }
+        }
+
+        function updateMasterCheckbox(pageData) {
+            const master = document.getElementById('masterCheckbox');
+            if(pageData.length === 0) { master.checked=false; master.indeterminate=false; return; }
+            const all = pageData.every(p => selectedIds.has(p.id));
+            const some = pageData.some(p => selectedIds.has(p.id));
+            master.checked = all;
+            master.indeterminate = !all && some;
+        }
+
+        function renderPagination(total) {
+            const totalPages = Math.ceil(total / rowsPerPage);
+            const controls = document.getElementById('paginationControls');
+            const start = (currentPage - 1) * rowsPerPage + 1;
+            const end = Math.min(start + rowsPerPage - 1, total);
+            document.getElementById('paginationInfo').innerText = total > 0 ? `Mostrando ${start}-${end} de ${total}` : '0 registros';
+            
+            if(total===0) { controls.innerHTML=''; return; }
+
+            let html = `<button onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>&lt;</button>`;
+            for(let i=1; i<=totalPages; i++) {
+                if(totalPages <= 7 || i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    html += `<button onclick="changePage(${i})" class="${i===currentPage?'active':''}">${i}</button>`;
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    html += `<button disabled>...</button>`;
+                }
+            }
+            html += `<button onclick="changePage(${currentPage+1})" ${currentPage>=totalPages?'disabled':''}>&gt;</button>`;
+            controls.innerHTML = html;
+        }
+
+        function changePage(p) {
+            const total = getProcessedData().length;
+            const max = Math.ceil(total/rowsPerPage);
+            if(p >= 1 && p <= max) { currentPage = p; renderTable(); }
+        }
+
+        const modal = document.getElementById('patientModal');
+        const deleteModal = document.getElementById('deleteModal');
+
+        function openPatientModal() {
+            document.getElementById('patientForm').reset();
+            document.getElementById('modalTitle').innerText = "Registrar Paciente";
+            document.getElementById('patientId').value = "";
+            modal.classList.add('open');
+        }
+        function closePatientModal() { modal.classList.remove('open'); }
+
+        function editPatient(id) {
+            const p = patients.find(x => x.id === id);
+            document.getElementById('modalTitle').innerText = "Editar Ficha";
+            document.getElementById('patientId').value = p.id;
+            const parts = p.name.split(" ");
+            document.getElementById('pName').value = parts[0];
+            document.getElementById('pLastName').value = parts.slice(1).join(" ");
+            document.getElementById('pAge').value = p.age;
+            document.getElementById('pSex').value = p.sex;
+            document.getElementById('pDiag').value = p.diag;
+            document.getElementById('pRegion').value = p.region;
+            modal.classList.add('open');
+        }
+
+        document.getElementById('patientForm').onsubmit = function(e) {
+            e.preventDefault();
+            const id = document.getElementById('patientId').value;
+            const data = {
+                name: document.getElementById('pName').value + " " + document.getElementById('pLastName').value,
+                age: document.getElementById('pAge').value,
+                sex: document.getElementById('pSex').value,
+                diag: document.getElementById('pDiag').value,
+                region: document.getElementById('pRegion').value
+            };
+
+            if(id) {
+                const idx = patients.findIndex(p => p.id == id);
+                patients[idx] = { ...patients[idx], ...data };
+            } else {
+                const newId = patients.length > 0 ? Math.max(...patients.map(p=>p.id))+1 : 1;
+                const newExp = `EXP-${newId.toString().padStart(3,'0')}`;
+                patients.push({ id: newId, exp: newExp, ...data });
+            }
+            closePatientModal();
+            renderTable();
+        }
+
+        window.onclick = function(e) {
+            if(e.target === modal) closePatientModal();
+            if(e.target === deleteModal) closeDeleteModal();
+            if(!e.target.matches('.btn-dots')) document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('show'));
+        }
+        function toggleMenu(id) {
+            document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('show'));
+            document.getElementById(`menu-${id}`).classList.toggle('show');
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>

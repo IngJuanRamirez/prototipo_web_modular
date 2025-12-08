@@ -120,3 +120,10 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'core/static',
 ]
+
+# Si un usuario no logeado intenta entrar
+LOGIN_URL = '/login/'
+# Si el usuario se loggeo correctamente
+LOGIN_REDIRECT_URL = '/'
+# A donde ir si se cierra la sesion
+LOGOUT_REDIRECT_URL = '/login/'
